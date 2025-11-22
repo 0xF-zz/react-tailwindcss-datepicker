@@ -27,7 +27,7 @@ import {
     nextMonthBy,
     previousMonthBy
 } from "../libs/date";
-import { Period, DatepickerType, ColorKeys, DateType } from "../types";
+import { Period, DatepickerType, ColorKeys, DateType, DateValueType } from "../types";
 
 import Arrow from "./icons/Arrow";
 import VerticalDash from "./VerticalDash";
@@ -217,23 +217,59 @@ const Datepicker = (props: DatepickerType) => {
 
     useEffect(() => {
         if (value && value.startDate && value.endDate) {
+            /* eslint-disable no-console */
+            console.log(
+                "[Datepicker useEffect] value prop changed, startDate:",
+                value.startDate,
+                "endDate:",
+                value.endDate
+            );
+            if (value.startDate) {
+                console.log(
+                    "[Datepicker useEffect] startDate details - getDate():",
+                    value.startDate.getDate(),
+                    "getMonth():",
+                    value.startDate.getMonth(),
+                    "getFullYear():",
+                    value.startDate.getFullYear()
+                );
+            }
+            if (value.endDate) {
+                console.log(
+                    "[Datepicker useEffect] endDate details - getDate():",
+                    value.endDate.getDate(),
+                    "getMonth():",
+                    value.endDate.getMonth(),
+                    "getFullYear():",
+                    value.endDate.getFullYear()
+                );
+            }
+            /* eslint-enable no-console */
             if (dateIsSameOrBefore(value.startDate, value.endDate, "date")) {
                 setPeriod({
                     start: value.startDate,
                     end: value.endDate
                 });
 
-                setInputText(
-                    `${dateFormat(value.startDate, displayFormat, i18n)}${
-                        asSingle
-                            ? ""
-                            : ` ${separator} ${dateFormat(value.endDate, displayFormat, i18n)}`
-                    }`
+                const formattedStart = dateFormat(value.startDate, displayFormat, i18n);
+                const formattedEnd = dateFormat(value.endDate, displayFormat, i18n);
+                /* eslint-disable no-console */
+                console.log(
+                    "[Datepicker useEffect] Formatted dates - start:",
+                    formattedStart,
+                    "end:",
+                    formattedEnd
                 );
+                /* eslint-enable no-console */
+
+                setInputText(`${formattedStart}${asSingle ? "" : ` ${separator} ${formattedEnd}`}`);
             }
         }
 
         if (value && value.startDate === null && value.endDate === null) {
+            /* eslint-disable no-console */
+            console.log("[Datepicker useEffect] Clearing value");
+            /* eslint-enable no-console */
             setPeriod({
                 start: null,
                 end: null
@@ -276,6 +312,43 @@ const Datepicker = (props: DatepickerType) => {
         return DEFAULT_COLOR;
     }, [primaryColor]);
 
+    // Wrap onChange to add logging
+    const wrappedOnChange = useCallback(
+        (value: DateValueType, e?: HTMLInputElement | null | undefined) => {
+            /* eslint-disable no-console */
+            console.log("[Datepicker onChange wrapper] Called with value:", value);
+            if (value?.startDate) {
+                console.log(
+                    "[Datepicker onChange wrapper] startDate:",
+                    value.startDate,
+                    "- getDate():",
+                    value.startDate.getDate(),
+                    "getMonth():",
+                    value.startDate.getMonth(),
+                    "getFullYear():",
+                    value.startDate.getFullYear()
+                );
+            }
+            if (value?.endDate) {
+                console.log(
+                    "[Datepicker onChange wrapper] endDate:",
+                    value.endDate,
+                    "- getDate():",
+                    value.endDate.getDate(),
+                    "getMonth():",
+                    value.endDate.getMonth(),
+                    "getFullYear():",
+                    value.endDate.getFullYear()
+                );
+            }
+            /* eslint-enable no-console */
+            if (onChange) {
+                onChange(value, e);
+            }
+        },
+        [onChange]
+    );
+
     const contextValues = useMemo(() => {
         if (minDate && !dateIsValid(minDate)) {
             /* eslint-disable */
@@ -299,7 +372,7 @@ const Datepicker = (props: DatepickerType) => {
             arrowContainer: arrowRef,
             asSingle,
             calendarContainer: calendarContainerRef,
-            changeDatepickerValue: onChange,
+            changeDatepickerValue: wrappedOnChange,
             changeDayHover: (newDay: DateType) => setDayHover(newDay),
             changeInputText: (newText: string) => setInputText(newText),
             changePeriod: (newPeriod: Period) => setPeriod(newPeriod),
@@ -344,6 +417,7 @@ const Datepicker = (props: DatepickerType) => {
         dayHover,
         inputText,
         onChange,
+        wrappedOnChange,
         showFooter,
         placeholder,
         separator,
