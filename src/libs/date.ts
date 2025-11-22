@@ -507,7 +507,30 @@ export function dateIsBetween(
 export function dateFormat(date: DateType, format: string, local = "en") {
     if (!dateIsValid(date)) return null;
 
-    return dayjs(date).locale(local).format(format);
+    /* eslint-disable no-console */
+    console.log(
+        "[dateFormat] Formatting date:",
+        date,
+        "with format:",
+        format,
+        "and locale:",
+        local
+    );
+    if (date instanceof Date) {
+        console.log(
+            "[dateFormat] Date details - getDate():",
+            date.getDate(),
+            "getMonth():",
+            date.getMonth(),
+            "getFullYear():",
+            date.getFullYear()
+        );
+    }
+
+    const result = dayjs(date).locale(local).format(format);
+    console.log("[dateFormat] Formatted result:", result);
+    /* eslint-enable no-console */
+    return result;
 }
 
 export function dateStringToDate(dateString: string) {
@@ -520,6 +543,8 @@ export function dateStringToDate(dateString: string) {
     // We require the complete format to avoid misinterpreting partial input
     // This regex matches: 1-2 digits, dot, 1-2 digits, dot, 4 digits (strict year)
     if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmed)) {
+        /* eslint-disable no-console */
+        console.log("[dateStringToDate] German format detected, input:", trimmed);
         const parts = trimmed.split(".");
 
         if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
@@ -528,15 +553,61 @@ export function dateStringToDate(dateString: string) {
             const month = parseInt(parts[1], 10);
             const year = parseInt(parts[2], 10);
 
+            console.log(
+                "[dateStringToDate] Parsed components - day:",
+                day,
+                "month:",
+                month,
+                "year:",
+                year
+            );
+
             // Validate ranges
             if (isNaN(day) || isNaN(month) || isNaN(year)) {
+                console.log("[dateStringToDate] Invalid parsed values (NaN detected)");
                 return null;
             }
 
-            const parsed = dayjs(new Date(year, month - 1, day, 0, 0, 0, 0));
+            console.log(
+                "[dateStringToDate] Creating Date object with: year:",
+                year,
+                "month-1:",
+                month - 1,
+                "day:",
+                day
+            );
+            const dateObject = new Date(year, month - 1, day, 0, 0, 0, 0);
+            console.log(
+                "[dateStringToDate] Date object created:",
+                dateObject.toISOString(),
+                "getDate():",
+                dateObject.getDate(),
+                "getMonth():",
+                dateObject.getMonth(),
+                "getFullYear():",
+                dateObject.getFullYear()
+            );
+
+            const parsed = dayjs(dateObject);
 
             if (parsed.isValid()) {
-                return parsed.toDate();
+                const resultDate = parsed.toDate();
+                console.log(
+                    "[dateStringToDate] Returning valid date:",
+                    resultDate.toISOString(),
+                    "getDate():",
+                    resultDate.getDate(),
+                    "getMonth():",
+                    resultDate.getMonth(),
+                    "getFullYear():",
+                    resultDate.getFullYear()
+                );
+                /* eslint-enable no-console */
+                return resultDate;
+            } else {
+                /* eslint-disable no-console */
+                console.log("[dateStringToDate] dayjs validation failed");
+                /* eslint-enable no-console */
             }
         }
     }

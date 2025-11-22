@@ -76,6 +76,8 @@ const Input = (e: Props) => {
     const handleInputChange = useCallback(
         (e: ChangeEvent<HTMLInputElement>) => {
             const inputValue = e.target.value;
+            /* eslint-disable no-console */
+            console.log("[handleInputChange] User input:", inputValue);
 
             // Always update the input text first so user can see what they're typing
             changeInputText(e.target.value);
@@ -83,22 +85,46 @@ const Input = (e: Props) => {
             const dates: Date[] = [];
 
             if (asSingle) {
+                console.log(
+                    "[handleInputChange] Single date mode, calling dateStringToDate with:",
+                    inputValue
+                );
                 // const date = parseFormattedDate(inputValue, displayFormat);
                 const date = dateStringToDate(inputValue);
+                console.log("[handleInputChange] dateStringToDate returned:", date);
                 if (date) {
+                    console.log(
+                        "[handleInputChange] Valid date returned - getDate():",
+                        date.getDate(),
+                        "getMonth():",
+                        date.getMonth(),
+                        "getFullYear():",
+                        date.getFullYear()
+                    );
                     dates.push(date);
                 }
             } else {
+                console.log(
+                    "[handleInputChange] Range date mode, splitting by separator:",
+                    separator
+                );
                 const parsed = inputValue.split(separator);
 
                 let startDate: DateType = null;
                 let endDate: DateType = null;
 
                 if (parsed.length === 2) {
+                    console.log("[handleInputChange] Parsing start date:", parsed[0]);
                     startDate = dateStringToDate(parsed[0]);
+                    console.log("[handleInputChange] Start date result:", startDate);
+                    console.log("[handleInputChange] Parsing end date:", parsed[1]);
                     endDate = dateStringToDate(parsed[1]);
+                    console.log("[handleInputChange] End date result:", endDate);
                 } else if (parsed.length > 2) {
                     // If there are multiple separators, try to use first and last parts
+                    console.log(
+                        "[handleInputChange] Multiple separators detected, using first and last parts"
+                    );
                     startDate = dateStringToDate(parsed[0]);
                     endDate = dateStringToDate(parsed[parsed.length - 1]);
                 }
@@ -106,6 +132,7 @@ const Input = (e: Props) => {
                 // This prevents incorrect parsing during typing
 
                 if (startDate && endDate && dateIsBefore(startDate, endDate, "date")) {
+                    console.log("[handleInputChange] Both dates valid and in correct order");
                     dates.push(startDate);
                     dates.push(endDate);
                 }
@@ -113,6 +140,31 @@ const Input = (e: Props) => {
 
             // Only update datepicker value and trigger onChange when we have valid dates
             if (dates[0]) {
+                console.log(
+                    "[handleInputChange] Calling changeDatepickerValue with startDate:",
+                    dates[0],
+                    "endDate:",
+                    dates[1] || dates[0]
+                );
+                console.log(
+                    "[handleInputChange] startDate details - getDate():",
+                    dates[0].getDate(),
+                    "getMonth():",
+                    dates[0].getMonth(),
+                    "getFullYear():",
+                    dates[0].getFullYear()
+                );
+                if (dates[1]) {
+                    console.log(
+                        "[handleInputChange] endDate details - getDate():",
+                        dates[1].getDate(),
+                        "getMonth():",
+                        dates[1].getMonth(),
+                        "getFullYear():",
+                        dates[1].getFullYear()
+                    );
+                }
+                /* eslint-enable no-console */
                 changeDatepickerValue(
                     {
                         startDate: dates[0],
