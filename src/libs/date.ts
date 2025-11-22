@@ -533,14 +533,7 @@ export function dateStringToDate(dateString: string) {
                 return null;
             }
 
-            const parsed = dayjs()
-                .year(year)
-                .month(month - 1)
-                .date(day)
-                .hour(0)
-                .minute(0)
-                .second(0)
-                .millisecond(0);
+            const parsed = dayjs(new Date(year, month - 1, day, 0, 0, 0, 0));
 
             if (parsed.isValid()) {
                 return parsed.toDate();
@@ -555,14 +548,7 @@ export function dateStringToDate(dateString: string) {
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10);
 
-        const parsed = dayjs()
-            .year(year)
-            .month(month - 1)
-            .date(1)
-            .hour(0)
-            .minute(0)
-            .second(0)
-            .millisecond(0);
+        const parsed = dayjs(new Date(year, month - 1, 1, 0, 0, 0, 0));
 
         if (parsed.isValid()) {
             return parsed.toDate();
@@ -571,14 +557,7 @@ export function dateStringToDate(dateString: string) {
         // Just YYYY - use January 1st
         const year = parseInt(trimmed, 10);
 
-        const parsed = dayjs()
-            .year(year)
-            .month(0)
-            .date(1)
-            .hour(0)
-            .minute(0)
-            .second(0)
-            .millisecond(0);
+        const parsed = dayjs(new Date(year, 0, 1, 0, 0, 0, 0));
 
         if (parsed.isValid()) {
             return parsed.toDate();
