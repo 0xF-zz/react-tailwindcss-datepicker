@@ -516,59 +516,26 @@ export function dateStringToDate(dateString: string) {
     const trimmed = dateString.trim();
     if (!trimmed) return null;
 
-    // Try to parse German date format: DD.MM.YYYY, DD.MM, or DD
-    if (/^\d{1,2}\./.test(trimmed)) {
+    // Try to parse German date format: DD.MM.YYYY only
+    // We require the complete format to avoid misinterpreting partial input
+    // This regex matches: 1-2 digits, dot, 1-2 digits, dot, 4 digits (strict year)
+    if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmed)) {
         const parts = trimmed.split(".");
-        const now = dayjs();
 
-        if (parts.length === 3) {
-            // DD.MM.YYYY
+        if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+            // DD.MM.YYYY - require all parts to have values
             const day = parseInt(parts[0], 10);
             const month = parseInt(parts[1], 10);
             const year = parseInt(parts[2], 10);
 
-            // Handle 2-digit years using a 50-year sliding window:
-            // Years 00-49 are interpreted as 2000-2049
-            // Years 50-99 are interpreted as 1950-1999
-            // This is a common convention for date parsing
-            const fullYear = year < 100 ? (year < 50 ? 2000 + year : 1900 + year) : year;
-
-            const parsed = dayjs()
-                .year(fullYear)
-                .month(month - 1)
-                .date(day)
-                .hour(0)
-                .minute(0)
-                .second(0)
-                .millisecond(0);
-
-            if (parsed.isValid()) {
-                return parsed.toDate();
+            // Validate ranges
+            if (isNaN(day) || isNaN(month) || isNaN(year)) {
+                return null;
             }
-        } else if (parts.length === 2) {
-            // DD.MM - use current year
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10);
 
             const parsed = dayjs()
-                .year(now.year())
+                .year(year)
                 .month(month - 1)
-                .date(day)
-                .hour(0)
-                .minute(0)
-                .second(0)
-                .millisecond(0);
-
-            if (parsed.isValid()) {
-                return parsed.toDate();
-            }
-        } else if (parts.length === 1 && parts[0]) {
-            // Just DD - use current year and month
-            const day = parseInt(parts[0], 10);
-
-            const parsed = dayjs()
-                .year(now.year())
-                .month(now.month())
                 .date(day)
                 .hour(0)
                 .minute(0)
@@ -618,7 +585,19 @@ export function dateStringToDate(dateString: string) {
         }
     }
 
-    // Fall back to default dayjs parsing
+    // Don't fallback to dayjs parsing if it looks like incomplete German format
+    // (contains dots but doesn't match complete DD.MM.YYYY pattern)
+    if (trimmed.includes(".")) {
+        return null;
+    }
+
+    // Only allow fallback parsing for proper ISO date format (YYYY-MM-DD)
+    // This prevents parsing numbers like "2" or partial strings as dates
+    if (!/^\d{4}-\d{1,2}-\d{1,2}$/.test(trimmed)) {
+        return null;
+    }
+
+    // Fall back to default dayjs parsing for ISO dates (YYYY-MM-DD)
     const parseDate = dayjs(trimmed);
 
     if (!parseDate.isValid()) return null;

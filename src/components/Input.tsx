@@ -77,6 +77,9 @@ const Input = (e: Props) => {
         (e: ChangeEvent<HTMLInputElement>) => {
             const inputValue = e.target.value;
 
+            // Always update the input text first so user can see what they're typing
+            changeInputText(e.target.value);
+
             const dates: Date[] = [];
 
             if (asSingle) {
@@ -88,18 +91,19 @@ const Input = (e: Props) => {
             } else {
                 const parsed = inputValue.split(separator);
 
-                let startDate: DateType;
-                let endDate: DateType;
+                let startDate: DateType = null;
+                let endDate: DateType = null;
 
                 if (parsed.length === 2) {
-                    dateStringToDate(parsed[0]);
                     startDate = dateStringToDate(parsed[0]);
                     endDate = dateStringToDate(parsed[1]);
-                } else {
-                    const middle = Math.floor(inputValue.length / 2);
-                    startDate = dateStringToDate(inputValue.slice(0, middle));
-                    endDate = dateStringToDate(inputValue.slice(middle));
+                } else if (parsed.length > 2) {
+                    // If there are multiple separators, try to use first and last parts
+                    startDate = dateStringToDate(parsed[0]);
+                    endDate = dateStringToDate(parsed[parsed.length - 1]);
                 }
+                // Note: If parsed.length === 1, we don't try to split it in half
+                // This prevents incorrect parsing during typing
 
                 if (startDate && endDate && dateIsBefore(startDate, endDate, "date")) {
                     dates.push(startDate);
@@ -107,6 +111,7 @@ const Input = (e: Props) => {
                 }
             }
 
+            // Only update datepicker value and trigger onChange when we have valid dates
             if (dates[0]) {
                 changeDatepickerValue(
                     {
@@ -122,8 +127,6 @@ const Input = (e: Props) => {
                     changeDayHover(dates[0]);
                 }
             }
-
-            changeInputText(e.target.value);
         },
         [asSingle, separator, changeDatepickerValue, changeDayHover, changeInputText]
     );
