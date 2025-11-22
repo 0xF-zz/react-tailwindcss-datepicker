@@ -511,7 +511,115 @@ export function dateFormat(date: DateType, format: string, local = "en") {
 }
 
 export function dateStringToDate(dateString: string) {
-    const parseDate = dayjs(dateString);
+    if (!dateString || typeof dateString !== "string") return null;
+
+    const trimmed = dateString.trim();
+    if (!trimmed) return null;
+
+    // Try to parse German date format: DD.MM.YYYY, DD.MM, or DD
+    if (/^\d{1,2}\./.test(trimmed)) {
+        const parts = trimmed.split(".");
+        const now = dayjs();
+
+        if (parts.length === 3) {
+            // DD.MM.YYYY
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10);
+            const year = parseInt(parts[2], 10);
+
+            // Handle 2-digit years using a 50-year sliding window:
+            // Years 00-49 are interpreted as 2000-2049
+            // Years 50-99 are interpreted as 1950-1999
+            // This is a common convention for date parsing
+            const fullYear = year < 100 ? (year < 50 ? 2000 + year : 1900 + year) : year;
+
+            const parsed = dayjs()
+                .year(fullYear)
+                .month(month - 1)
+                .date(day)
+                .hour(0)
+                .minute(0)
+                .second(0)
+                .millisecond(0);
+
+            if (parsed.isValid()) {
+                return parsed.toDate();
+            }
+        } else if (parts.length === 2) {
+            // DD.MM - use current year
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10);
+
+            const parsed = dayjs()
+                .year(now.year())
+                .month(month - 1)
+                .date(day)
+                .hour(0)
+                .minute(0)
+                .second(0)
+                .millisecond(0);
+
+            if (parsed.isValid()) {
+                return parsed.toDate();
+            }
+        } else if (parts.length === 1 && parts[0]) {
+            // Just DD - use current year and month
+            const day = parseInt(parts[0], 10);
+
+            const parsed = dayjs()
+                .year(now.year())
+                .month(now.month())
+                .date(day)
+                .hour(0)
+                .minute(0)
+                .second(0)
+                .millisecond(0);
+
+            if (parsed.isValid()) {
+                return parsed.toDate();
+            }
+        }
+    }
+
+    // Try to parse partial ISO date format: YYYY-MM or YYYY
+    if (/^\d{4}-\d{1,2}$/.test(trimmed)) {
+        // YYYY-MM - use first day of month
+        const parts = trimmed.split("-");
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+
+        const parsed = dayjs()
+            .year(year)
+            .month(month - 1)
+            .date(1)
+            .hour(0)
+            .minute(0)
+            .second(0)
+            .millisecond(0);
+
+        if (parsed.isValid()) {
+            return parsed.toDate();
+        }
+    } else if (/^\d{4}$/.test(trimmed)) {
+        // Just YYYY - use January 1st
+        const year = parseInt(trimmed, 10);
+
+        const parsed = dayjs()
+            .year(year)
+            .month(0)
+            .date(1)
+            .hour(0)
+            .minute(0)
+            .second(0)
+            .millisecond(0);
+
+        if (parsed.isValid()) {
+            return parsed.toDate();
+        }
+    }
+
+    // Fall back to default dayjs parsing
+    const parseDate = dayjs(trimmed);
 
     if (!parseDate.isValid()) return null;
 
