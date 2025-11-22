@@ -91,8 +91,8 @@ const Input = (e: Props) => {
             } else {
                 const parsed = inputValue.split(separator);
 
-                let startDate: DateType;
-                let endDate: DateType;
+                let startDate: DateType = null;
+                let endDate: DateType = null;
 
                 if (parsed.length === 2) {
                     startDate = dateStringToDate(parsed[0]);
