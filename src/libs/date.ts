@@ -518,8 +518,8 @@ export function dateStringToDate(dateString: string) {
 
     // Try to parse German date format: DD.MM.YYYY only
     // We require the complete format to avoid misinterpreting partial input
-    // This regex matches: 1-2 digits, dot, 1-2 digits, dot, 4 digits (strict year)
-    if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmed)) {
+    // This regex matches: exactly 2 digits, dot, exactly 2 digits, dot, 4 digits (strict year)
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(trimmed)) {
         const parts = trimmed.split(".");
 
         if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
